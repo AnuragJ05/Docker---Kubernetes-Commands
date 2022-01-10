@@ -1,0 +1,16 @@
+D:\App_Dockefile>echo. > Dockerfile
+
+Dockerfile-
+
+FROM nginx:latest
+ADD . /usr/share/nginx/html
+
+
+D:\App_Dockefile>docker build --tag app:latest .
+
+
+D:\App_Dockefile>docker run --name app_docker -d -p 9000:80 app:latest
+eb2e4026fe65ab63a5150fa29933996b7ffab926bfa729b6fd81c3566550dcd0
+
+
+localhost:9090

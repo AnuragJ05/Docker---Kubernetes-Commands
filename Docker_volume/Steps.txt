@@ -1,0 +1,5 @@
+D:\Docker_volume>docker run --name Docker_html -d -p 8080:80 -v D:\Docker_volume:/usr/share/nginx/html nginx:latest
+adc8a6b9db61f9e400862531f74d881aa4c8296b83ef9715610a2aff5093c2ab
+
+
+localhost:8080
