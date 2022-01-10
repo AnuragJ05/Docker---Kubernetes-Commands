@@ -1,0 +1,214 @@
+##########################################################################################################
+
+kubectl create = Creates a new k8s resource in the cluster
+kubectl replace = Updates a resource in the live cluster
+kubectl apply = If I want to do create + replace
+
+##########################################################################################################
+
+1)	$ minikube version
+		minikube version: v1.18.0
+		commit: ec61815d60f66a6e4f6353030a40b12362557caa-dirty
+
+2)	$ minikube start
+		* minikube v1.18.0 on Ubuntu 18.04 (kvm/amd64)
+		.
+		.
+		* Done! kubectl is now configured to use "minikube" cluster and "default" namespace by default
+
+3)	$ minikube addons enable dashboard
+		* The 'dashboard' addon is enabled
+	$ kubectl apply -f /opt/kubernetes-dashboard.yaml
+		namespace/kubernetes-dashboard configured
+		service/kubernetes-dashboard-katacoda created
+
+4)	$ kubectl version
+		Client Version: version.Info{Major:"1", Minor:"20", GitVersion:"v1.20.4", GitCommit:"e87da0bd6e03ec3fea7933c4b5263d151aafd07c", GitTreeState:"clean", BuildDate:"2021-02-18T16:12:00Z", GoVersion:"go1.15.8", Compiler:"gc", Platform:"linux/amd64"}
+		Server Version: version.Info{Major:"1", Minor:"20", GitVersion:"v1.20.2", GitCommit:"faecb196815e248d3ecfb03c680a4507229c2a56", GitTreeState:"clean", BuildDate:"2021-01-13T13:20:00Z", GoVersion:"go1.15.5", Compiler:"gc", Platform:"linux/amd64"}
+
+4)	$ kubectl cluster-info
+		Kubernetes control plane is running at https://172.17.0.143:8443
+		KubeDNS is running at https://172.17.0.143:8443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+		To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
+
+5)	$ kubectl get nodes
+		NAME       STATUS   ROLES                  AGE   VERSION
+		minikube   Ready    control-plane,master   91s   v1.20.2
+
+6)	$ kubectl create deployment kubernetes-bootcamp --image=gcr.io/google-samples/kubernetes-bootcamp:v1
+		deployment.apps/kubernetes-bootcamp created
+
+7)	$ kubectl get deployments
+		NAME                  READY   UP-TO-DATE   AVAILABLE   AGE
+		kubernetes-bootcamp   1/1     1            1           36s
+
+8)	$ kubectl proxy
+		Starting to serve on 127.0.0.1:8001
+
+9)	$ curl http://localhost:8001/version
+		{
+		"major": "1",
+		.
+		.
+		"platform": "linux/amd64"
+		}
+
+10)	$ export POD_NAME=$(kubectl get pods -o go-template --tempate '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}')
+	$ echo Name of the Pod: $POD_NAME
+		Name of the Pod: kubernetes-bootcamp-57978f5f5d-4j4wv
+	$ curl http://localhost:8001/api/v1/namespaces/default/pods/$POD_NAME/
+		.
+		.
+
+11)	$ kubectl get pods
+		NAME                                  READY   STATUS    RESTARTS   AGE
+		kubernetes-bootcamp-fb5c67579-bftts   1/1     Running   0          91s
+
+12)	$ kubectl logs $POD_NAME
+		Kubernetes Bootcamp App Started At:
+		.
+		.
+
+13)	$ kubectl exec $POD_NAME -- env
+		PATH=/usr/local/sbin:/usr/
+		.
+		.
+
+14)	$ kubectl exec -ti $POD_NAME -- bash
+		root@kubernetes-bootcamp-fb5c67579-bftts:/#
+
+15)	$ kubectl get services
+		NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+		kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   3m18s
+
+16)	$ kubectl expose deployment/kubernetes-bootcamp --type="NodePort" --port 8080
+		service/kubernetes-bootcamp exposed
+
+17)	$ kubectl describe services/kubernetes-bootcamp
+		Name:                     kubernetes-bootcamp
+		.
+		.
+		Events:                   <none>
+
+18)	$ export NODE_PORT=$(kubectl get services/kubernetes-bootcamp -o go-template='{{(index .spec.ports 0).nodePort}}')
+	$ echo NODE_PORT=$NODE_PORT
+		NODE_PORT=31773
+	$ curl $(minikube ip):$NODE_PORT
+		Hello Kubernetes bootcamp! | Running on: kubernetes-bootcamp-fb5c67579-wlckx | v=1
+
+19)	$ kubectl describe deployment
+		Name:                   kubernetes-bootcamp
+		Namespace:              default
+		.
+		.
+		Normal  ScalingReplicaSet  14m   deployment-controller  Scaled up replica set kubernetes
+  
+20)	$ kubectl get pods -l app=kubernetes-bootcamp
+		NAME                                  READY   STATUS    RESTARTS   AGE
+		kubernetes-bootcamp-fb5c67579-wlckx   1/1     Running   0          16m
+
+21)	$ kubectl get services -l app=kubernetes-bootcamp
+		NAME                  TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+		kubernetes-bootcamp   NodePort   10.97.105.179   <none>        8080:31773/TCP   9m25s
+
+22)	$ export POD_NAME=$(kubectl get pods -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}')
+	$ echo Name of the Pod: $POD_NAME
+		Name of the Pod: kubernetes-bootcamp-fb5c67579-wlckx
+
+23)	$ kubectl label pods $POD_NAME version=v1
+		pod/kubernetes-bootcamp-fb5c67579-wlckx labeled
+
+24)	$ kubectl describe pods $POD_NAME
+		Name:		kubernetes-bootcamp-fb5c67579-wlckx
+		.
+		Labels:		app=kubernetes-bootcamp
+					pod-template-hash=fb5c67579
+					version=v1
+		.
+		Containers:
+			kubernetes-bootcamp:
+				Container ID:   docker://02865336fe65d7c85c008441b3383c80220daca715d925e577e12fb5a33b79d7
+				Image:          gcr.io/google-samples/kubernetes-bootcamp:v1
+				Image ID:       docker-pullable://jocatalin/kubernetes-bootcamp@sha256:0d6b8ee63bb57c5f5b6156f446b3bc3b3c143d233037f3a2f00e279c8fcc64af
+				Port:           8080/TCP
+				Host Port:      0/TCP
+				State:          Running
+				  Started:      Thu, 16 Sep 2021 05:19:57 +0000
+				Ready:          True
+				Restart Count:  0
+				Environment:    <none>
+				Mounts:			/var/run/secrets/kubernetes.io/serviceaccount from default-token-x458s (ro)
+		.
+
+25)	$ kubectl get pods -l version=v1
+		NAME                                  READY   STATUS    RESTARTS   AGE
+		kubernetes-bootcamp-fb5c67579-wlckx   1/1     Running   0          44m
+
+
+26)	$ kubectl delete service -l app=kubernetes-bootcamp
+		service "kubernetes-bootcamp" deleted
+
+27)	$ kubectl get rs
+		NAME                            DESIRED   CURRENT   READY   AGE
+		kubernetes-bootcamp-fb5c67579   1         1         1       2m37s
+
+28)	$ kubectl scale deployments/kubernetes-bootcamp --replicas=4
+		deployment.apps/kubernetes-bootcamp scaled
+
+29)	$ kubectl get pods -o wide
+		NAME                                  READY   STATUS    RESTARTS   AGE   IP           NODE       NOMINATED NODE   READINESS GATES
+		kubernetes-bootcamp-fb5c67579-c6fcg   1/1     Running   0          61s   172.18.0.8   minikube   <none>           <none>
+		kubernetes-bootcamp-fb5c67579-hwcs5   1/1     Running   0          16m   172.18.0.4   minikube   <none>           <none>
+
+30)	$ kubectl describe deployments/kubernetes-bootcamp
+		Name:                   kubernetes-bootcamp
+		Namespace:              default
+		.
+		.
+		
+31)	$ kubectl describe services/kubernetes-bootcamp
+		Name:                     kubernetes-bootcamp
+		Namespace:                default
+		.
+		.
+
+32)	$ kubectl set image deployments/kubernetes-bootcamp kubernetes-bootcamp=jocatalin/kubernetes-bootcamp:v2
+		deployment.apps/kubernetes-bootcamp image updated
+
+33)	$ kubectl rollout status deployments/kubernetes-bootcamp
+		deployment "kubernetes-bootcamp" successfully rolled out
+
+34)	$ kubectl rollout undo deployments/kubernetes-bootcamp
+		deployment.apps/kubernetes-bootcamp rolled back
+
+35)	[node1 ~]$ kubeadm init --token=102952.1a7dd4cc8d1f4cc5 --kubernetes-version $(kubeadm version -o short)
+		.
+		kubeadm join 172.18.0.12:6443 --token 102952.1a7dd4cc8d1f4cc5 --discovery-token-ca-cert-hash sha256:6d417296774d763b13fd2abe00d9
+		.
+		.
+
+36)	$ sudo cp /etc/kubernetes/admin.conf $HOME/
+	$ sudo chown $(id -u):$(id -g) $HOME/admin.conf
+	$ export KUBECONFIG=$HOME/admin.conf
+	$ kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+
+37)	[node2 ~]$ kubeadm join 172.18.0.12:6443 --token 102952.1a7dd4cc8d1f4cc5 --discovery-token-ca-cert-hash 				sha256:6d417296774d763b13fd2abe00d9
+		[preflight] Running pre-flight checks
+		.
+		.
+
+38)	[node1 ~]$kubectl run http --image=katacoda/docker-http-server:latest --replicas=1
+	[node1 ~]$kubectl expose deployment http --external-ip="172.17.0.16" --port=8000 --target-port=80
+	[node1 ~]$curl http://172.17.0.16:8000
+
+39)	[node1 ~]kubectl run httpexposed --image=katacoda/docker-http-server:latest --replicas=1 --port=80 --hostport=8001
+	[node1 ~]$curl http://172.17.0.16:8000
+
+40)	[node1 ~]kubectl scale --replicas=3 deployment http
+
+41)	$ kubectl get ing
+		NAME             CLASS   HOSTS                   ADDRESS   PORTS   AGE
+		webapp-ingress   nginx   my.kubernetes.example             80      90s
+		
+
+##########################################################################################################

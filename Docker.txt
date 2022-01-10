@@ -1,0 +1,144 @@
+#########################################################################################################
+
+docker run – Runs a command in a new container.
+docker start – Starts one or more stopped containers
+docker stop – Stops one or more running containers
+docker build – Builds an image form a Docker file
+docker pull – Pulls an image or a repository from a registry
+docker push – Pushes an image or a repository to a registry
+docker export – Exports a container’s filesystem as a tar archive
+docker exec – Runs a command in a run-time container
+docker search – Searches the Docker Hub for images
+docker attach – Attaches to a running container
+docker commit – Creates a new image from a container’s changes
+
+##########################################################################################################
+
+1)check docker version
+	docker --version
+
+2)To go into container
+	docker exec -it <container name> bash
+	(This will create a new Bash session in the container)
+	
+3) docker run <image name> ls
+################################################Image and Container#############################################################
+
+1)Create and run a container
+	docker create -t -i <image>
+	docker start -a -i <container id>
+
+2)Start a container (run= create+start)
+	docker run <image>
+	
+3)Show both running and stopped containers
+	docker ps -a
+	docker container ls
+
+4)In realtime Show both running and stopped containers
+	watch docker ps -a
+
+5)Delete container
+	docker rm <container name>
+	
+6)Rename container name
+	docker rename <old container name> <new container name>
+
+7)Create Docker Image with Dockerfile and create a container
+	a)mkdir test
+	b)cd test
+	c)touch Dockerfile / .echo > Dockerfile (Windows)
+	d)vi Dockerfile --->
+						FROM ubuntu
+						MAINTAINER anurag
+						RUN apt-get update
+						CMD ["echo", "Hello World"]
+	e)docker build test/
+	f)docker run --name <container name> <image name>
+	
+8)Create an image from a container
+	docker commit [CONTAINER] [NEW_IMAGE_NAME]
+	
+9)Delete image
+	docker rmi <image name>
+
+10)Delete image that is link to container
+	docker rm <container name>
+	docker rmi <image name>
+	
+11)check logs of running container
+	docker logs <CONTAINER>
+
+12)	docker pull <image:tag>
+
+13) docker push <image:tag>
+
+14)	docker tag old:old new:new
+
+15) docker inspect <image>
+
+16)	docker logs <image>
+
+17)	docker pull node:alpine
+
+18) docker stop <container id>
+
+19) docker start <container id>
+
+###################################################Network################################################
+
+1)List networks
+	docker network ls
+	
+2)Remove networks
+	docker network rm <network>
+	
+3)Show information of networks
+	docker network inspect <network>
+	
+####################################################Volume######################################################################
+	
+1)List volume
+	docker volume ls
+	
+2)Create volume
+	docker volume create <volume name>
+
+3)Inspect volume
+	docker volume inspect <volume name>
+	
+4)Remove all unused local volumes
+	docker volume prune
+	
+5)Delete volume
+	docker rm volume <volume name>
+
+#############################################Docker volume################################################
+
+D:\Docker_volume>docker run --name Docker_html -d -p 8080:80 -v D:\Docker_volume:/usr/share/nginx/html nginx:latest
+adc8a6b9db61f9e400862531f74d881aa4c8296b83ef9715610a2aff5093c2ab
+
+localhost:8080
+
+-->docker run --name <name> -d -p 8080:80 -v <from dir>:<destination dir> <image>
+
+##############################################Docker Build project########################################
+
+D:\App_Dockefile>echo. > Dockerfile
+
+Dockerfile-
+
+FROM nginx:latest
+ADD . /usr/share/nginx/html
+
+
+D:\App_Dockefile>docker build --tag app:latest .
+
+
+D:\App_Dockefile>docker run --name app_docker -d -p 9000:80 app:latest
+eb2e4026fe65ab63a5150fa29933996b7ffab926bfa729b6fd81c3566550dcd0
+
+
+localhost:9090
+
+##########################################################################################################
